@@ -5,6 +5,7 @@
 //   POST /intake/booking         -> normalized booking (Zapier, Make, manual, email parser...)
 //   POST /intake/cancel          -> { sourceBookingId, reason? }
 //   GET  /bookings               -> log of forwarded bookings (JSON)
+//   GET  /reports/commission?month=2026-12[&format=csv] -> what you owe the partner
 //
 // Every route except /health requires HTTP basic auth (INTAKE_USER / INTAKE_PASS).
 import http from 'node:http';
@@ -16,6 +17,7 @@ import { BookingStore } from './store.js';
 import { Forwarder } from './forwarder.js';
 import { createNotifier } from './notify.js';
 import { parseOctoWebhook } from './intake/octo-webhook.js';
+import { commissionReport, reportToCsv } from './commission.js';
 
 function safeEqual(a, b) {
   const x = Buffer.from(String(a)); const y = Buffer.from(String(b));
@@ -58,6 +60,16 @@ export function createApp({ config, forwarder, store, log = console }) {
 
       if (req.method === 'GET' && url.pathname === '/bookings') return send(res, 200, store.all());
 
+      if (req.method === 'GET' && url.pathname === '/reports/commission') {
+        const month = url.searchParams.get('month') || new Date().toISOString().slice(0, 7);
+        const report = commissionReport(store.all(), month);
+        if (url.searchParams.get('format') === 'csv') {
+          res.writeHead(200, { 'Content-Type': 'text/csv', 'Content-Disposition': `attachment; filename="commission-${month}.csv"` });
+          return res.end(reportToCsv(report));
+        }
+        return send(res, 200, report);
+      }
+
       if (req.method === 'POST' && url.pathname === '/intake/octo-webhook') {
         const parsed = parseOctoWebhook(await readJson(req));
         log.info(`Webhook: ${parsed.status} ${parsed.sourceBookingId} product=${parsed.productId}`);
@@ -97,6 +109,7 @@ export function buildFromConfig(config = loadConfig(), deps = {}) {
     mappings: config.mappings,
     notify: deps.notify || createNotifier({ alertWebhookUrl: config.alertWebhookUrl }),
     log: deps.log || console,
+    commissionRate: config.commissionRate ?? 0.25,
   });
   return { app: createApp({ config, forwarder, store, log: deps.log || console }), forwarder, store };
 }

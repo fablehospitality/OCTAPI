@@ -10,10 +10,11 @@ export class OctoError extends Error {
 }
 
 export class OctoClient {
-  constructor({ baseUrl, apiKey, fetchImpl = fetch }) {
+  constructor({ baseUrl, apiKey, capabilities = 'octo/pricing', fetchImpl = fetch }) {
     if (!baseUrl) throw new Error('OCTO baseUrl is required');
     this.baseUrl = baseUrl.replace(/\/+$/, '');
     this.apiKey = apiKey;
+    this.capabilities = capabilities;
     this.fetch = fetchImpl;
   }
 
@@ -24,7 +25,7 @@ export class OctoClient {
         Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
         Accept: 'application/json',
-        'Octo-Capabilities': '',
+        'Octo-Capabilities': this.capabilities,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });

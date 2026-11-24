@@ -39,6 +39,8 @@ export function loadConfig(overrides = {}) {
     },
     publicUrl: env.PUBLIC_URL || '',
     alertWebhookUrl: env.ALERT_WEBHOOK_URL || '',
+    // Share of each booking you keep. Override per tour with "commissionRate" in mappings.json.
+    commissionRate: Number(env.COMMISSION_RATE || 0.25),
     dataFile: resolve(env.DATA_FILE || 'data/bookings.json'),
     mappings,
   };

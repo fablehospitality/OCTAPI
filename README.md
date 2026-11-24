@@ -61,6 +61,24 @@ same slot in your Peek.
 Alerts go to the log and, if set, to `ALERT_WEBHOOK_URL` (Slack, Zapier, etc.).
 `GET /bookings` (basic auth) shows every forwarded booking and its status.
 
+## Commission report
+
+You keep `COMMISSION_RATE` (default 25%) of each partner booking and owe the
+partner the rest. The base amount is the partner's own retail price for the
+guests booked, which the connector captures from their availability at
+booking time.
+
+```bash
+npm run commission-report              # last month
+npm run commission-report -- 2026-12   # a specific month
+```
+
+The report prints totals per tour and saves `data/commission-YYYY-MM.csv`,
+with one row per booking, ready to attach to an invoice. It's also available
+over HTTP: `GET /reports/commission?month=2026-12&format=csv` (basic auth).
+Bookings count in the month the tour runs. Cancelled and failed bookings are
+listed separately and not counted.
+
 ## Other ways to send bookings in
 
 If Peek's webhook doesn't cover your use, anything that can send an HTTP
@@ -87,8 +105,9 @@ Cancel with `POST /intake/cancel` `{ "sourceBookingId": "..." }`.
 ## Things to agree with your partner
 
 - **Money.** OCTO only places the booking. The guest pays you. Settle the
-  partner's share (net rate or commission) between yourselves, for example
-  with a monthly invoice built from `GET /bookings`.
+  partner's share monthly from the commission report. Also ask the partner to
+  set your net rate in their Peek to match (e.g. 75% of retail), so their
+  records agree.
 - **Who emails the guest.** The connector sets `emailReceipt: false`, so only
   your confirmation email goes out.
 - **Prices and descriptions** on your mirror products are set by hand in your

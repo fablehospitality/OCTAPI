@@ -40,6 +40,19 @@ export function mapUnits(mapping, units) {
   return { unitItems, units: Object.entries(unitCounts).map(([id, quantity]) => ({ id, quantity })) };
 }
 
+// Sums the partner's retail price for the booked guests from an availability
+// slot's unitPricing (returned when the octo/pricing capability is on).
+export function priceFromSlot(slot, unitItems) {
+  const table = Object.fromEntries((slot?.unitPricing || []).map((p) => [p.unitId, p]));
+  let retail = 0; let currency = null;
+  for (const item of unitItems) {
+    const p = table[item.unitId];
+    if (!p) return null;
+    retail += p.retail; currency = p.currency;
+  }
+  return { retail, currency };
+}
+
 const minute = (s) => String(s || '').slice(0, 16); // "YYYY-MM-DDTHH:MM"
 
 function partnerContact(c = {}) {
@@ -56,7 +69,8 @@ function partnerContact(c = {}) {
 }
 
 export class Forwarder {
-  constructor({ partnerClient, store, mappings, notify = async () => {}, log = console, resellerPrefix = '' }) {
+  constructor({ partnerClient, store, mappings, notify = async () => {}, log = console, resellerPrefix = '', commissionRate = 0.25 }) {
+    this.commissionRate = commissionRate;
     this.partner = partnerClient;
     this.store = store;
     this.mappings = mappings;
@@ -142,8 +156,15 @@ export class Forwarder {
           return this.store.upsert(b.sourceBookingId, { ...base, status: 'FAILED', error: `No availability: ${why}` });
         }
 
+        const partnerPrice = priceFromSlot(slot, unitItems);
+        Object.assign(base, {
+          partnerRetail: partnerPrice?.retail ?? null,
+          currency: b.currency || partnerPrice?.currency || null,
+          amountPaid: b.amountPaid ?? null,
+          commissionRate: mapping.commissionRate ?? this.commissionRate,
+        });
         const partnerUuid = randomUUID();
-        this.store.upsert(b.sourceBookingId, { partnerUuid });
+        this.store.upsert(b.sourceBookingId, { ...base, partnerUuid });
         reserved = await this.partner.reserve({
           uuid: partnerUuid,
           productId: mapping.partner.productId,

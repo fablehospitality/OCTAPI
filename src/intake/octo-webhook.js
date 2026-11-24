@@ -26,5 +26,8 @@ export function parseOctoWebhook(body) {
     units: Object.entries(counts).map(([unitId, quantity]) => ({ unitId, quantity })),
     contact: booking.contact && (booking.contact.fullName || booking.contact.emailAddress) ? booking.contact : firstItemContact || {},
     notes: booking.notes || '',
+    // What the guest paid on your Peek page, when Peek includes pricing.
+    amountPaid: booking.pricing?.retail ?? null,
+    currency: booking.pricing?.currency ?? null,
   };
 }

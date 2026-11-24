@@ -5,6 +5,7 @@ import { buildFromConfig } from '../src/server.js';
 import { OctoClient } from '../src/octo-client.js';
 import { BookingStore } from '../src/store.js';
 import { checkAvailability } from '../scripts/watch-availability.js';
+import { commissionReport, reportToCsv } from '../src/commission.js';
 
 const listen = (server) => new Promise((r) => server.listen(0, () => r(`http://127.0.0.1:${server.address().port}`)));
 const silent = { info() {}, warn() {}, error() {} };
@@ -134,4 +135,22 @@ test('availability watcher reports departures that close', async () => {
   await fetch(`${partnerUrl}/_simulate/close-slot`, { method: 'POST', body: JSON.stringify({ availabilityId: '2026-12-06T09:00:00-05:00' }) });
   const second = await checkAvailability({ client, mappings, days: 1, today, previous: first.current });
   assert.deepEqual(second.changes.map((c) => [c.start, c.now]), [['2026-12-06T09:00:00-05:00', 'CLOSED']]);
+});
+
+test('commission report: 25% kept, 75% owed, cancelled and failed bookings not counted', async () => {
+  const report = commissionReport(store.all(), '2026-12');
+  // Confirmed: 2 adults + 1 child (09:00), 1 adult (14:00 dup test), 2 adults via generic intake.
+  assert.equal(report.totals.bookings, 3);
+  assert.equal(report.totals.guests, 6);
+  assert.equal(report.totals.basis, 5 * 6500 + 2500);
+  assert.equal(report.totals.commission, Math.round(6500 * 2 * 0.25 + 2500 * 0.25) + Math.round(6500 * 0.25) + Math.round(6500 * 2 * 0.25));
+  assert.equal(report.totals.owed, report.totals.basis - report.totals.commission);
+  assert.deepEqual(report.excluded.map((e) => e.status).sort(), ['CANCELLED', 'FAILED']);
+  const csv = reportToCsv(report);
+  assert.match(csv, /^Tour date,Tour,/);
+  assert.match(csv, /TOTAL,.*,350\.00,.*,87\.50,262\.50/);
+
+  const res = await fetch(`${connectorUrl}/reports/commission?month=2026-12&format=csv`, { headers: { Authorization: AUTH } });
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), csv);
 });

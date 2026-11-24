@@ -13,6 +13,7 @@
     "list-products": "node scripts/list-products.js",
     "register-webhook": "node scripts/register-webhook.js",
     "watch-availability": "node scripts/watch-availability.js",
+    "commission-report": "node scripts/commission-report.js",
     "test": "node --test test/*.test.js"
   }
 }

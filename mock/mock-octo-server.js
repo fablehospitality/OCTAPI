@@ -14,8 +14,8 @@ export function createMockOcto({ apiKey = 'test-key', products, capacity = 10, t
     products: products || [{
       id: 'kayak-tour', internalName: 'Sunset Kayak Tour', reference: 'KAYAK',
       options: [{ id: 'DEFAULT', default: true, internalName: 'Standard', units: [
-        { id: 'unit-adult', internalName: 'Adult', type: 'ADULT' },
-        { id: 'unit-child', internalName: 'Child', type: 'CHILD' },
+        { id: 'unit-adult', internalName: 'Adult', type: 'ADULT', price: 6500 },
+        { id: 'unit-child', internalName: 'Child', type: 'CHILD', price: 2500 },
       ] }],
     }],
     capacity: {},       // availabilityId -> remaining seats (lazy)
@@ -30,7 +30,9 @@ export function createMockOcto({ apiKey = 'test-key', products, capacity = 10, t
   const slot = (productId, optionId, id, wanted = 1) => {
     const left = remaining(id);
     const status = state.closed.has(id) ? 'CLOSED' : left < Math.max(wanted, 1) ? 'SOLD_OUT' : left <= 3 ? 'LIMITED' : 'AVAILABLE';
-    return { id, localDateTimeStart: id, localDateTimeEnd: id, allDay: false, available: status === 'AVAILABLE' || status === 'LIMITED', status, vacancies: Math.max(left, 0), capacity };
+    const units = state.products.find((p) => p.id === productId)?.options.find((o) => o.id === optionId)?.units || [];
+    const unitPricing = units.map((u) => ({ unitId: u.id, retail: u.price ?? 5000, net: u.price ?? 5000, original: u.price ?? 5000, currency: 'USD', currencyPrecision: 2, includedTaxes: [] }));
+    return { id, localDateTimeStart: id, localDateTimeEnd: id, allDay: false, available: status === 'AVAILABLE' || status === 'LIMITED', status, vacancies: Math.max(left, 0), capacity, unitPricing };
   };
   const dates = (from, to) => {
     const out = []; const d = new Date(from + 'T00:00:00Z'); const end = new Date(to + 'T00:00:00Z');
