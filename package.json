@@ -1,0 +1,18 @@
+{
+  "name": "peek-octo-connector",
+  "version": "0.1.0",
+  "description": "Forwards bookings of mirrored partner tours from your Peek Pro account into your partner's Peek Pro account over OCTO.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "mock": "node mock/mock-octo-server.js",
+    "list-products": "node scripts/list-products.js",
+    "register-webhook": "node scripts/register-webhook.js",
+    "watch-availability": "node scripts/watch-availability.js",
+    "test": "node --test test/*.test.js"
+  }
+}

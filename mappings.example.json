@@ -1,0 +1,15 @@
+{
+  "products": [
+    {
+      "name": "Partner Sunset Kayak Tour",
+      "mine": { "productId": "YOUR-MIRROR-PRODUCT-ID" },
+      "partner": { "productId": "PARTNER-PRODUCT-ID", "optionId": "DEFAULT" },
+      "units": {
+        "YOUR-ADULT-UNIT-ID": "PARTNER-ADULT-UNIT-ID",
+        "YOUR-CHILD-UNIT-ID": "PARTNER-CHILD-UNIT-ID",
+        "Adult": "PARTNER-ADULT-UNIT-ID",
+        "Child": "PARTNER-CHILD-UNIT-ID"
+      }
+    }
+  ]
+}
