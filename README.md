@@ -44,6 +44,8 @@ npm start                                  # deploy on any host with a public HT
 npm run register-webhook                   # once, after it's reachable at PUBLIC_URL
 ```
 
+To host it free on Google Cloud (or Oracle Cloud) with HTTPS, see [deploy/vm](deploy/vm/README.md).
+
 Run `npm run watch-availability` every ~15 minutes (cron / host scheduler). It
 alerts you when a partner departure fills up or closes, so you can close the
 same slot in your Peek.
