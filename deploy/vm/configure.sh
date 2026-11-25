@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run once the two Peek OCTO API keys arrive:
-#   sudo bash /opt/octapi/deploy/oracle/configure.sh
+#   sudo bash /opt/octapi/deploy/vm/configure.sh
 # Asks for the keys (typing is hidden), saves them, maps the Cornerstone
 # tours, restarts the connector and, if you say yes, registers the webhook
 # so your Peek sends bookings here.
@@ -43,7 +43,7 @@ systemctl restart octapi; sleep 3
 journalctl -u octapi -n 5 --no-pager
 URL=$(grep '^PUBLIC_URL=' "$ENV" | cut -d= -f2-)
 if curl -fsS "$URL/health" >/dev/null; then echo "Reachable at $URL"; else
-  echo "Not reachable at $URL yet. Check the Oracle security list allows ports 80 and 443 (see README)."; exit 1; fi
+  echo "Not reachable at $URL yet. Check ports 80 and 443 are open in your cloud firewall (see deploy/vm/README.md)."; exit 1; fi
 
 echo; echo "== Peek webhook"
 echo "Registering tells your Peek to send booking updates here. Do this only once."

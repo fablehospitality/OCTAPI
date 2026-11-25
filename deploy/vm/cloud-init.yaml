@@ -6,4 +6,4 @@
 runcmd:
   - [bash, -c, "apt-get update -y && apt-get install -y git curl"]
   - [bash, -c, "git clone https://github.com/fablehospitality/octapi /opt/octapi"]
-  - [bash, -c, "bash /opt/octapi/deploy/oracle/install.sh > /var/log/octapi-install.log 2>&1"]
+  - [bash, -c, "bash /opt/octapi/deploy/vm/install.sh > /var/log/octapi-install.log 2>&1"]

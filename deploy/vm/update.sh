@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pulls the latest connector code and restarts it:
-#   sudo bash /opt/octapi/deploy/oracle/update.sh
+#   sudo bash /opt/octapi/deploy/vm/update.sh
 set -euo pipefail
 cd /opt/octapi
 sudo -u octapi git pull --ff-only

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Sets up the connector on a fresh Oracle Cloud Ubuntu server (run as root;
-# cloud-init.yaml runs it for you). Safe to run again.
+# Sets up the connector on a fresh Ubuntu server (Google Cloud or Oracle Cloud; run as root;
+# the startup script runs it for you). Safe to run again.
 #   - Node.js 22, the connector as a service that restarts on failure/reboot
 #   - Caddy in front, with a free HTTPS certificate for <ip>.sslip.io
 #   - availability watcher every 15 minutes
 #   - a starter .env with random webhook credentials (API keys added later
-#     with: sudo bash /opt/octapi/deploy/oracle/configure.sh)
+#     with: sudo bash /opt/octapi/deploy/vm/configure.sh)
 set -euo pipefail
 APP=/opt/octapi
 export DEBIAN_FRONTEND=noninteractive
@@ -32,7 +32,7 @@ id octapi >/dev/null 2>&1 || useradd --system --home "$APP" --shell /usr/sbin/no
 mkdir -p "$APP/data"
 chown -R octapi:octapi "$APP"
 
-echo "== Firewall (Oracle's Ubuntu image blocks 80/443 by default)"
+echo "== Firewall (Oracle images block 80/443 by default; harmless elsewhere)"
 for port in 80 443; do
   iptables -C INPUT -p tcp --dport "$port" -m state --state NEW -j ACCEPT 2>/dev/null \
     || iptables -I INPUT 1 -p tcp --dport "$port" -m state --state NEW -j ACCEPT
@@ -90,4 +90,4 @@ cat > /etc/cron.d/octapi-watch <<EOF
 EOF
 
 echo "== Done. Connector: https://$HOST/health"
-echo "Next: sudo bash $APP/deploy/oracle/configure.sh"
+echo "Next: sudo bash $APP/deploy/vm/configure.sh"
